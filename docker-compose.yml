@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  #service 1: definition of mysql database
+  db:
+    image: mysql:8.0.17  # its MySQL image version that docker will pull from remote docker host.
+    container_name: mysqlappp21  # container name of MySQL ,need to provide in application.properties
+    environment:                # you can assign environment variable which will be used by MySQL to start.
+      - MYSQL_ROOT_PASSWORD=sa
+      - MYSQL_USER=admin        #mysql user ,need to configure in application.properties
+      - MYSQL_PASSWORD=sa       # mysql password, need to configure in application.properties
+      - MYSQL_DATABASE=test     # mysql database name ,need to configure in application.properties
+
+    ports:
+      - "3306:3306"      # port on which MySQL will be exposed for outside access.
+    restart: always      # this flag ensure that docker will keep retrying to restart MySQL until it connect to referenced services.
+
+
+  #service 3: definition of your spring-boot app
+  demo:                        #it is just a name, which will be used only in this file.
+    image: demo               #name of the image after dockerfile executes
+    container_name: demo-app  #name of the container created from docker image
+    build: .                      # docker-compose will build application image from Dockerfile.
+    ports:
+      - "1092:1092"                       #docker container port with your os port
+    restart: always             # both service will keep trying util communication is done successfully.
+    depends_on:
+      - db                    # this flag ensure that container (demo) will dependent on db (container_name:mysqlappp21)
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqlappp21:3306/test?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: sa
